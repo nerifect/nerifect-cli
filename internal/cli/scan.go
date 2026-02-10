@@ -14,6 +14,7 @@ import (
 
 func newScanCmd() *cobra.Command {
 	var scanTypeFlag string
+	var diffBase string
 
 	cmd := &cobra.Command{
 		Use:   "scan <path-or-url>",
@@ -24,18 +25,21 @@ and AI governance issues.`,
   nerifect scan /path/to/project
   nerifect scan https://github.com/owner/repo
   nerifect scan --type ai .
-  nerifect scan --type compliance . --output json`,
+  nerifect scan --type compliance . --output json
+  nerifect scan --diff .
+  nerifect scan --diff main .`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScan(cmd, args[0], scanTypeFlag)
+			return runScan(cmd, args[0], scanTypeFlag, diffBase)
 		},
 	}
 
 	cmd.Flags().StringVar(&scanTypeFlag, "type", "full", "scan type: full, compliance, ai")
+	cmd.Flags().StringVar(&diffBase, "diff", "", "scan only changed files (vs git ref, default HEAD if flag set without value)")
 	return cmd
 }
 
-func runScan(cmd *cobra.Command, target, scanTypeStr string) error {
+func runScan(cmd *cobra.Command, target, scanTypeStr, diffBase string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
@@ -79,13 +83,21 @@ func runScan(cmd *cobra.Command, target, scanTypeStr string) error {
 
 	// Start scanning with progress
 	var progress *output.Progress
-	if outFmt != output.FormatJSON {
+	if outFmt != output.FormatJSON && outFmt != output.FormatSARIF {
 		progress = output.NewProgress("Scanning " + target + "...")
 	}
 
 	opts := scanner.ScanOptions{
 		Branch:    branch,
 		PolicyIDs: policyIDs,
+	}
+
+	// Handle --diff flag: if flag was changed but value is empty, default to HEAD
+	if cmd.Flags().Changed("diff") {
+		if diffBase == "" {
+			diffBase = "HEAD"
+		}
+		opts.DiffBase = diffBase
 	}
 	result, err := scanner.RunScan(cmd.Context(), target, scanType, cfg, opts)
 	if err != nil {

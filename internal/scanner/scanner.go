@@ -24,6 +24,7 @@ type ScanResult struct {
 type ScanOptions struct {
 	Branch    string
 	PolicyIDs []int64
+	DiffBase  string // if set, only scan files changed vs this git ref
 }
 
 // RunScan orchestrates a full scan of a target (local path or GitHub URL).
@@ -77,7 +78,22 @@ func RunScan(ctx context.Context, target string, scanType store.ScanType, cfg *c
 	}
 
 	// Build file reader
-	reader := NewLocalFileReader(scanDir, cfg.MaxFilesPerScan, cfg.MaxFileSizeKB)
+	var reader *LocalFileReader
+	if opts.DiffBase != "" {
+		changedFiles, err := GitChangedFiles(scanDir, opts.DiffBase)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "warning: diff mode failed, scanning all files: %v\n", err)
+			reader = NewLocalFileReader(scanDir, cfg.MaxFilesPerScan, cfg.MaxFileSizeKB)
+		} else {
+			allowList := make(map[string]bool, len(changedFiles))
+			for _, f := range changedFiles {
+				allowList[f] = true
+			}
+			reader = NewLocalFileReaderWithAllowList(scanDir, cfg.MaxFilesPerScan, cfg.MaxFileSizeKB, allowList)
+		}
+	} else {
+		reader = NewLocalFileReader(scanDir, cfg.MaxFilesPerScan, cfg.MaxFileSizeKB)
+	}
 	files, err := reader.ListFiles()
 	if err != nil {
 		store.FailScan(scan.ID)

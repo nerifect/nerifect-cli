@@ -17,6 +17,8 @@ func RenderScanReport(scan *store.Scan, violations []store.Violation, detections
 			"ai_detections": detections,
 			"summary":       buildSummary(scan, violations, detections),
 		})
+	case FormatSARIF:
+		RenderSARIF(scan, violations, detections)
 	case FormatPlain:
 		renderScanPlain(scan, violations, detections)
 	default:

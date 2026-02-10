@@ -1,9 +1,12 @@
 package scanner
 
 import (
+	"bufio"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gobwas/glob"
 )
 
 // Binary file extensions to skip when scanning.
@@ -28,17 +31,31 @@ var skipDirs = map[string]bool{
 
 // LocalFileReader implements ai.FileReader for local directories.
 type LocalFileReader struct {
-	rootDir      string
-	files        []string
-	maxFiles     int
-	maxFileSizeKB int
+	rootDir        string
+	files          []string
+	maxFiles       int
+	maxFileSizeKB  int
+	ignorePatterns []glob.Glob
+	allowList      map[string]bool // if non-nil, only include these relative paths
 }
 
 func NewLocalFileReader(rootDir string, maxFiles, maxFileSizeKB int) *LocalFileReader {
 	return &LocalFileReader{
-		rootDir:      rootDir,
-		maxFiles:     maxFiles,
-		maxFileSizeKB: maxFileSizeKB,
+		rootDir:        rootDir,
+		maxFiles:       maxFiles,
+		maxFileSizeKB:  maxFileSizeKB,
+		ignorePatterns: loadIgnorePatterns(rootDir),
+	}
+}
+
+// NewLocalFileReaderWithAllowList creates a reader that only includes files in the allow list.
+func NewLocalFileReaderWithAllowList(rootDir string, maxFiles, maxFileSizeKB int, allowList map[string]bool) *LocalFileReader {
+	return &LocalFileReader{
+		rootDir:        rootDir,
+		maxFiles:       maxFiles,
+		maxFileSizeKB:  maxFileSizeKB,
+		ignorePatterns: loadIgnorePatterns(rootDir),
+		allowList:      allowList,
 	}
 }
 
@@ -59,6 +76,17 @@ func (r *LocalFileReader) ListFiles() ([]string, error) {
 			if skipDirs[name] {
 				return filepath.SkipDir
 			}
+			// Check ignore patterns against directory paths
+			if len(r.ignorePatterns) > 0 && path != r.rootDir {
+				relDir, _ := filepath.Rel(r.rootDir, path)
+				if relDir != "." {
+					for _, pat := range r.ignorePatterns {
+						if pat.Match(relDir) || pat.Match(relDir+"/") || pat.Match(name) {
+							return filepath.SkipDir
+						}
+					}
+				}
+			}
 			return nil
 		}
 
@@ -77,6 +105,18 @@ func (r *LocalFileReader) ListFiles() ([]string, error) {
 		relPath, err := filepath.Rel(r.rootDir, path)
 		if err != nil {
 			relPath = path
+		}
+
+		// Check allow list (diff-based scanning)
+		if r.allowList != nil && !r.allowList[relPath] {
+			return nil
+		}
+
+		// Check ignore patterns
+		for _, pat := range r.ignorePatterns {
+			if pat.Match(relPath) || pat.Match(filepath.Base(relPath)) {
+				return nil
+			}
 		}
 
 		files = append(files, relPath)
@@ -124,4 +164,29 @@ func (r *LocalFileReader) ReadFilesContents() (map[string]string, error) {
 func IsTextFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
 	return !binaryExts[ext]
+}
+
+// loadIgnorePatterns reads a .nerifectignore file and compiles glob patterns.
+func loadIgnorePatterns(rootDir string) []glob.Glob {
+	f, err := os.Open(filepath.Join(rootDir, ".nerifectignore"))
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+
+	var patterns []glob.Glob
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		// Strip trailing slash for directory patterns — match both with and without
+		g, err := glob.Compile(strings.TrimRight(line, "/"))
+		if err != nil {
+			continue
+		}
+		patterns = append(patterns, g)
+	}
+	return patterns
 }

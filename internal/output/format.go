@@ -15,6 +15,7 @@ const (
 	FormatTable Format = "table"
 	FormatJSON  Format = "json"
 	FormatPlain Format = "plain"
+	FormatSARIF Format = "sarif"
 )
 
 func ParseFormat(s string) Format {
@@ -23,6 +24,8 @@ func ParseFormat(s string) Format {
 		return FormatJSON
 	case "plain":
 		return FormatPlain
+	case "sarif":
+		return FormatSARIF
 	default:
 		return FormatTable
 	}
