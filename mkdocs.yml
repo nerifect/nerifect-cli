@@ -1,0 +1,76 @@
+site_name: Nerifect CLI
+site_url: https://nerifect.github.io/nerifect-cli
+site_description: Cloud governance CLI for compliance scanning and AI/ML framework detection
+repo_url: https://github.com/nerifect/nerifect-cli
+repo_name: nerifect/nerifect-cli
+
+theme:
+  name: material
+  logo: assets/images/nerifect_logo.png
+  favicon: assets/images/nerifect_logo.png
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - CLI Reference:
+    - Overview: cli/nerifect.md
+    - Commands:
+      - init: cli/nerifect_init.md
+      - scan: cli/nerifect_scan.md
+      - policy: cli/nerifect_policy.md
+      - policy add: cli/nerifect_policy_add.md
+      - policy list: cli/nerifect_policy_list.md
+      - policy remove: cli/nerifect_policy_remove.md
+      - fix: cli/nerifect_fix.md
+      - report: cli/nerifect_report.md
+      - config: cli/nerifect_config.md
+      - config get: cli/nerifect_config_get.md
+      - config set: cli/nerifect_config_set.md
+      - config list: cli/nerifect_config_list.md
+      - repo: cli/nerifect_repo.md
+      - repo add: cli/nerifect_repo_add.md
+      - repo list: cli/nerifect_repo_list.md
+      - repo remove: cli/nerifect_repo_remove.md
+      - repo update: cli/nerifect_repo_update.md
+      - version: cli/nerifect_version.md
+  - Configuration: configuration.md
+  - AI/ML Detection: ai-detection.md
+  - CI/CD Integration: cicd.md
+  - Architecture: architecture.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+
+extra_css:
+  - assets/stylesheets/extra.css

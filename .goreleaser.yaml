@@ -1,0 +1,85 @@
+version: 2
+
+project_name: nerifect
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X github.com/nerifect/nerifect-cli/internal/cli.Version={{.Version}}
+      - -s
+      - -w
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+# Generate .deb and .rpm packages
+nfpms:
+  - file_name_template: '{{ .ProjectName }}_{{ .Arch }}'
+    homepage:  https://github.com/nerifect/nerifect-cli
+    description: "Cloud governance CLI for compliance scanning and AI/ML framework detection"
+    maintainer: "Sanjay <sanjay@nerifect.com>"
+    license: "MIT"
+    vendor: "Nerifect"
+    formats:
+      - deb
+      - rpm
+
+# Generate Homebrew formula
+brews:
+  - repository:
+      owner: nerifect
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    
+    # Template for the brew formula.
+    # Default is typically sufficient, but can be customized.
+    
+    homepage: "https://nerifect.github.io/nerifect-cli"
+    description: "Cloud governance CLI for compliance scanning and AI/ML framework detection"
+    
+    # Dependencies
+    # dependencies:
+    #   - name: git
+
+    # Custom install instructions
+    install: |
+      bin.install "nerifect"
+      
+      # Install bash completion
+      output = Utils.safe_popen_read("#{bin}/nerifect", "completion", "bash")
+      (bash_completion/"nerifect").write output
+
+      # Install zsh completion
+      output = Utils.safe_popen_read("#{bin}/nerifect", "completion", "zsh")
+      (zsh_completion/"_nerifect").write output
+
+      # Install fish completion
+      output = Utils.safe_popen_read("#{bin}/nerifect", "completion", "fish")
+      (fish_completion/"nerifect.fish").write output

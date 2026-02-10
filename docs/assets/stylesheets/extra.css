@@ -1,0 +1,17 @@
+:root {
+  /* Nerifect Logo Blue & Green */
+  --md-primary-fg-color:        #0077BE; /* Ocean Blue */
+  --md-primary-fg-color--light: #008DCB; /* Lighter Blue */
+  --md-primary-fg-color--dark:  #005A9C; /* Darker Blue */
+  
+  /* Accent color - Green */
+  --md-accent-fg-color:         #00A86B; /* Jade Green */
+}
+
+/* Dark mode overrides */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #0077BE;
+  --md-primary-fg-color--light: #008DCB;
+  --md-primary-fg-color--dark:  #005A9C;
+  --md-accent-fg-color:         #00C985; /* Brighter Green for dark mode */
+}
