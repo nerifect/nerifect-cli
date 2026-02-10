@@ -2,6 +2,7 @@
 bin/
 nerifect
 docgen
+!tools/docgen
 *.exe
 *.dll
 *.so
