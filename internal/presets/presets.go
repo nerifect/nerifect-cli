@@ -1,42 +1,64 @@
 package presets
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"sort"
 
 	"github.com/nerifect/nerifect-cli/internal/store"
+	"gopkg.in/yaml.v3"
 )
+
+//go:embed data/*.yaml
+var presetFiles embed.FS
 
 // Rule represents a single compliance rule within a preset.
 type Rule struct {
-	RuleID          string   `json:"rule_id"`
-	Title           string   `json:"title"`
-	Description     string   `json:"description"`
-	Severity        string   `json:"severity"`
-	Category        string   `json:"category"`
-	CheckType       string   `json:"check_type"`
-	Pattern         string   `json:"pattern"`
-	Recommendations []string `json:"recommendations"`
-	ClauseReference string   `json:"clause_reference,omitempty"`
+	RuleID          string   `json:"rule_id" yaml:"rule_id"`
+	Title           string   `json:"title" yaml:"title"`
+	Description     string   `json:"description" yaml:"description"`
+	Severity        string   `json:"severity" yaml:"severity"`
+	Category        string   `json:"category" yaml:"category"`
+	CheckType       string   `json:"check_type" yaml:"check_type"`
+	Pattern         string   `json:"pattern" yaml:"pattern"`
+	Recommendations []string `json:"recommendations" yaml:"recommendations"`
+	ClauseReference string   `json:"clause_reference,omitempty" yaml:"clause_reference,omitempty"`
 }
 
 // Preset represents a built-in compliance framework rule pack.
 type Preset struct {
-	Name           string
-	Slug           string
-	Description    string
-	Category       store.PolicyCategory
-	Severity       store.Severity
-	RegulationType string
-	Rules          []Rule
+	Name           string               `yaml:"name"`
+	Slug           string               `yaml:"slug"`
+	Description    string               `yaml:"description"`
+	Category       store.PolicyCategory `yaml:"category"`
+	Severity       store.Severity       `yaml:"severity"`
+	RegulationType string               `yaml:"regulation_type"`
+	Rules          []Rule               `yaml:"rules"`
 }
 
 // registry holds all built-in presets keyed by slug.
 var registry = map[string]Preset{}
 
-func register(p Preset) {
-	registry[p.Slug] = p
+func init() {
+	entries, err := presetFiles.ReadDir("data")
+	if err != nil {
+		panic(fmt.Sprintf("reading embedded preset directory: %v", err))
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		data, err := presetFiles.ReadFile("data/" + entry.Name())
+		if err != nil {
+			panic(fmt.Sprintf("reading embedded preset %s: %v", entry.Name(), err))
+		}
+		var p Preset
+		if err := yaml.Unmarshal(data, &p); err != nil {
+			panic(fmt.Sprintf("parsing preset %s: %v", entry.Name(), err))
+		}
+		registry[p.Slug] = p
+	}
 }
 
 // List returns all available presets sorted by slug.

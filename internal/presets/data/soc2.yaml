@@ -1,0 +1,116 @@
+name: "SOC2 Type II Basic"
+slug: "soc2-basic"
+description: "SOC2 Type II - basic pattern-based checks for security, availability, and confidentiality controls"
+category: "COMPLIANCE"
+severity: "MEDIUM"
+regulation_type: "COMPLIANCE"
+rules:
+  - rule_id: "SOC2-CC6-1"
+    title: "Hardcoded credentials in source code"
+    description: "Credentials hardcoded in source code violate SOC2 confidentiality requirements."
+    severity: "CRITICAL"
+    category: "CONFIDENTIALITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(password|passwd|secret|api_key|apikey|private_key)\s*[:=]\s*["''][A-Za-z0-9+/=_\-]{8,}'
+    recommendations:
+      - "Use a secrets manager or environment variables for all credentials."
+    clause_reference: "CC6.1 Logical Access"
+
+  - rule_id: "SOC2-CC7-1"
+    title: "Missing error handling"
+    description: "Empty catch blocks or ignored exceptions can hide security-relevant errors."
+    severity: "MEDIUM"
+    category: "MONITORING"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(catch\s*\([^)]*\)\s*\{\s*\}|except:\s*pass|rescue\s*=>?\s*nil)'
+    recommendations:
+      - "Log or handle all exceptions. Empty catch blocks suppress important error signals."
+    clause_reference: "CC7.2 System Monitoring"
+
+  - rule_id: "SOC2-CC7-2"
+    title: "Disabled TLS/SSL verification"
+    description: "Disabling certificate verification undermines transport security."
+    severity: "HIGH"
+    category: "SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(verify\s*[:=]\s*false|InsecureSkipVerify\s*[:=]\s*true|VERIFY_NONE|verify_ssl\s*[:=]\s*false|rejectUnauthorized\s*[:=]\s*false)'
+    recommendations:
+      - "Always verify TLS certificates in production. Use proper CA certificates."
+    clause_reference: "CC7.1 Infrastructure Security"
+
+  - rule_id: "SOC2-CC6-2"
+    title: "Overly permissive file permissions"
+    description: "Setting world-readable or world-writable permissions (0777, 0666) weakens access controls."
+    severity: "MEDIUM"
+    category: "ACCESS_CONTROL"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(chmod|os\.chmod|FileMode)\s*\(?\s*(0?777|0?666)'
+    recommendations:
+      - "Use least-privilege file permissions. Avoid 777 and 666 modes."
+    clause_reference: "CC6.1 Logical Access"
+
+  - rule_id: "SOC2-CC7-3"
+    title: "Security TODO/FIXME remaining"
+    description: "Unresolved security-related TODO/FIXME comments suggest incomplete security controls."
+    severity: "MEDIUM"
+    category: "SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(TODO|FIXME|HACK|XXX)\s*:?\s*.*(security|vuln|auth|encrypt|permission|access.control)'
+    recommendations:
+      - "Resolve all security-related TODO items before production deployment."
+    clause_reference: "CC7.1 Infrastructure Security"
+
+  - rule_id: "SOC2-CC8-1"
+    title: "Temporary or test credentials"
+    description: "Test or temporary credentials left in code may be exploitable."
+    severity: "HIGH"
+    category: "CONFIDENTIALITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(test_password|temp_key|dummy_secret|changeme|default_password)\s*[:=]'
+    recommendations:
+      - "Remove all test and temporary credentials from production code."
+    clause_reference: "CC8.1 Change Management"
+
+  - rule_id: "SOC2-CC2-1"
+    title: "Missing README documentation"
+    description: "No README file found. Documentation is required for SOC2 operational procedures."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:README*"
+    recommendations:
+      - "Add a README file documenting setup, deployment, and operational procedures."
+    clause_reference: "CC2.1 Communication"
+
+  - rule_id: "SOC2-CC2-2"
+    title: "Missing LICENSE file"
+    description: "No LICENSE file found. License documentation supports compliance audits."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:LICENSE*"
+    recommendations:
+      - "Add a LICENSE file specifying the software license terms."
+    clause_reference: "CC2.1 Communication"
+
+  - rule_id: "SOC2-CC6-3"
+    title: "Unencrypted database connection string"
+    description: "Database connection strings without SSL/TLS parameters may transmit data unencrypted."
+    severity: "HIGH"
+    category: "CONFIDENTIALITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(postgresql|mysql|mongodb|redis)://[^?]*["''\s]'
+    recommendations:
+      - "Enable SSL/TLS in database connection strings (e.g., ?sslmode=require)."
+    clause_reference: "CC6.7 Data Transmission"
+
+  - rule_id: "SOC2-CC6-4"
+    title: "Disabled authentication"
+    description: "Code patterns suggesting authentication has been disabled or bypassed."
+    severity: "CRITICAL"
+    category: "ACCESS_CONTROL"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(auth\s*[:=]\s*false|authenticate\s*[:=]\s*false|NoAuth|skipAuth|disable.?auth)'
+    recommendations:
+      - "Ensure authentication is enabled for all user-facing and API endpoints."
+    clause_reference: "CC6.1 Logical Access"

@@ -1,0 +1,138 @@
+name: "NIST 800-53 Rev 5 Basic"
+slug: "nist-800-53"
+description: "NIST SP 800-53 Rev 5 - pattern-based checks for federal information system security and privacy controls"
+category: "COMPLIANCE"
+severity: "HIGH"
+regulation_type: "COMPLIANCE"
+rules:
+  - rule_id: "NIST-IA-5-1"
+    title: "Hardcoded authenticators in source code"
+    description: "Passwords, API keys, or tokens embedded in source code violate authenticator management controls."
+    severity: "CRITICAL"
+    category: "AUTHENTICATOR_MGMT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(password|passwd|secret|api_key|apikey|private_key|auth_token|access_key)\s*[:=]\s*["''][A-Za-z0-9+/=_\-]{8,}'
+    recommendations:
+      - "Store all authenticators in a FIPS-validated secrets management system. Never embed credentials in source code."
+    clause_reference: "IA-5 Authenticator Management"
+
+  - rule_id: "NIST-SC-13-1"
+    title: "Unapproved cryptographic algorithm"
+    description: "Use of deprecated or non-FIPS-approved cryptographic algorithms."
+    severity: "HIGH"
+    category: "CRYPTO_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)\b(DES|3DES|RC4|RC2|Blowfish|ECB|MD4|MD5)\b\s*[\(.]'
+    recommendations:
+      - "Use only FIPS 140-2/140-3 approved algorithms: AES-256, SHA-256+, ECDSA, RSA-2048+."
+    clause_reference: "SC-13 Cryptographic Protection"
+
+  - rule_id: "NIST-AU-2-1"
+    title: "Audit event logging disabled"
+    description: "Audit and logging mechanisms disabled or suppressed, preventing security event recording."
+    severity: "HIGH"
+    category: "AUDIT_EVENTS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(audit|logging|log.?level|event.?log)\s*[:=]\s*(false|off|disabled|none|0|silent|quiet)'
+    recommendations:
+      - "Enable audit logging for all security-relevant events. Configure log levels to capture authentication, access, and modification events."
+    clause_reference: "AU-2 Event Logging"
+
+  - rule_id: "NIST-AC-3-1"
+    title: "Access control enforcement disabled"
+    description: "Authorization or access control mechanisms bypassed or disabled in code."
+    severity: "CRITICAL"
+    category: "ACCESS_ENFORCEMENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(authorize|authz|permission|access.?control|rbac|acl)\s*[:=]\s*(false|off|disabled|none|skip|bypass)'
+    recommendations:
+      - "Implement mandatory access controls for all protected resources. Never disable authorization enforcement."
+    clause_reference: "AC-3 Access Enforcement"
+
+  - rule_id: "NIST-SC-8-1"
+    title: "Unencrypted data transmission"
+    description: "Unencrypted protocol URLs detected excluding localhost. All non-local data transmission must use encryption."
+    severity: "HIGH"
+    category: "TRANSMISSION_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(ftp|telnet|smtp|http)://(?!localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])'
+    recommendations:
+      - "Use encrypted protocols (SFTP, SSH, SMTPS, HTTPS) for all data transmission per FIPS requirements."
+    clause_reference: "SC-8 Transmission Confidentiality and Integrity"
+
+  - rule_id: "NIST-SI-10-1"
+    title: "Input validation disabled"
+    description: "Input validation or sanitization mechanisms explicitly disabled in code."
+    severity: "HIGH"
+    category: "INPUT_VALIDATION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(valid|validation|sanitize|sanitization|escape|filter.?input)\s*[:=]\s*(false|off|disabled|none|skip|0)'
+    recommendations:
+      - "Enable input validation for all user-supplied data. Apply allowlists and type checking at system boundaries."
+    clause_reference: "SI-10 Information Input Validation"
+
+  - rule_id: "NIST-SI-11-1"
+    title: "Empty error and exception handling"
+    description: "Empty catch blocks or suppressed exceptions hide errors that may indicate security incidents."
+    severity: "MEDIUM"
+    category: "ERROR_HANDLING"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(catch\s*\([^)]*\)\s*\{\s*\}|except:\s*pass|rescue\s*=>?\s*nil|catch\s*\{\s*\})'
+    recommendations:
+      - "Log all exceptions with severity context. Never use empty catch blocks or blanket exception suppression."
+    clause_reference: "SI-11 Error Handling"
+
+  - rule_id: "NIST-AC-6-1"
+    title: "Excessive file or resource permissions"
+    description: "World-readable or world-writable permissions (777, 666) violate least privilege principles."
+    severity: "MEDIUM"
+    category: "LEAST_PRIVILEGE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(chmod|os\.chmod|FileMode|perm)\s*\(?\s*(0?777|0?766|0?776|0?666)'
+    recommendations:
+      - "Apply least-privilege file permissions. Use 640 or more restrictive modes for sensitive files."
+    clause_reference: "AC-6 Least Privilege"
+
+  - rule_id: "NIST-AC-12-1"
+    title: "Session timeout disabled or excessive"
+    description: "Session timeout disabled, set to zero, or set to never expire, allowing indefinite sessions."
+    severity: "MEDIUM"
+    category: "SESSION_MANAGEMENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(session.?timeout|session.?expir|session.?max.?age|idle.?timeout|token.?expir)\s*[:=]\s*(0|false|none|disabled|never|-1)'
+    recommendations:
+      - "Configure session timeouts per organizational policy: 15 minutes for high-sensitivity, 30 minutes for standard systems."
+    clause_reference: "AC-12 Session Termination"
+
+  - rule_id: "NIST-CM-6-1"
+    title: "Insecure configuration defaults"
+    description: "Debug mode enabled, certificate verification disabled, or security features set to insecure defaults."
+    severity: "MEDIUM"
+    category: "CONFIG_SETTINGS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(DEBUG\s*[:=]\s*[Tt]rue|verify\s*[:=]\s*false|secure\s*[:=]\s*false|safe.?mode\s*[:=]\s*false|InsecureSkipVerify\s*[:=]\s*true)'
+    recommendations:
+      - "Review and harden all configuration settings. Disable debug mode and enable all security features in production."
+    clause_reference: "CM-6 Configuration Settings"
+
+  - rule_id: "NIST-SI-7-1"
+    title: "Integrity verification disabled"
+    description: "Checksum, signature, or integrity verification mechanisms disabled, allowing tampered data or code."
+    severity: "HIGH"
+    category: "INTEGRITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(checksum|integrity|signature|verify.?signature|gpg.?verify|hash.?check)\s*[:=]\s*(false|off|disabled|skip|none|0)'
+    recommendations:
+      - "Enable integrity verification for all software, firmware, and data. Use cryptographic signatures for verification."
+    clause_reference: "SI-7 Software, Firmware, and Information Integrity"
+
+  - rule_id: "NIST-PL-1-1"
+    title: "Missing security planning documentation"
+    description: "No SECURITY documentation file found in the repository."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:SECURITY*"
+    recommendations:
+      - "Add a SECURITY.md documenting the system security plan, vulnerability disclosure process, and incident response procedures."
+    clause_reference: "PL-1 Policy and Procedures"

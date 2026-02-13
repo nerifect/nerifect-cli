@@ -1,0 +1,116 @@
+name: "GDPR Data Protection Basic"
+slug: "gdpr-basic"
+description: "GDPR - basic pattern-based checks for personal data protection and privacy compliance"
+category: "COMPLIANCE"
+severity: "HIGH"
+regulation_type: "REGULATION"
+rules:
+  - rule_id: "GDPR-A5-1"
+    title: "PII logged in application output"
+    description: "Personal identifiable information (email, SSN, phone) found in logging statements violates data minimization principles."
+    severity: "HIGH"
+    category: "DATA_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(log|logger|console|print)\s*[\.(]\s*(info|debug|warn|error|log|print|println)?\s*\(?\s*.*\b(email|ssn|social.security|phone.number|date.of.birth|passport|national.id)\b'
+    recommendations:
+      - "Redact or mask PII before logging. Use structured logging with field-level filtering."
+    clause_reference: "Article 5(1)(c) Data Minimization"
+
+  - rule_id: "GDPR-A5-2"
+    title: "Hardcoded personal data in source code"
+    description: "Personal data hardcoded in source code violates data protection by design."
+    severity: "HIGH"
+    category: "DATA_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(email|user_email)\s*[:=]\s*["''][a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}["'']'
+    recommendations:
+      - "Remove hardcoded personal data from source code. Use test data generators for development."
+    clause_reference: "Article 5(1)(f) Integrity and Confidentiality"
+
+  - rule_id: "GDPR-A25-1"
+    title: "Missing data encryption at rest"
+    description: "Storing sensitive data without encryption violates data protection by design and by default."
+    severity: "HIGH"
+    category: "DATA_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(write|save|store|insert|put)\s*\(?\s*.*\b(personal.data|user.data|pii|sensitive)\b.*(?!.*encrypt)'
+    recommendations:
+      - "Encrypt personal data at rest using AES-256 or equivalent."
+    clause_reference: "Article 25 Data Protection by Design"
+
+  - rule_id: "GDPR-A30-1"
+    title: "Missing PRIVACY or data processing documentation"
+    description: "No privacy policy or data processing documentation found in the repository."
+    severity: "MEDIUM"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:PRIVACY*"
+    recommendations:
+      - "Add a PRIVACY.md or privacy policy documenting data processing activities per Article 30."
+    clause_reference: "Article 30 Records of Processing Activities"
+
+  - rule_id: "GDPR-A32-1"
+    title: "Disabled or weak encryption"
+    description: "Disabled encryption or use of weak algorithms violates technical security measures."
+    severity: "CRITICAL"
+    category: "SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(DES|RC4|ECB|encrypt\s*[:=]\s*(false|no|off|disabled)|SSLv[23]|TLSv1\.0)'
+    recommendations:
+      - "Use modern encryption standards: AES-256-GCM, TLS 1.2+. Disable weak algorithms."
+    clause_reference: "Article 32 Security of Processing"
+
+  - rule_id: "GDPR-A17-1"
+    title: "No data deletion mechanism"
+    description: "Code patterns suggesting data is stored without a deletion or retention mechanism."
+    severity: "MEDIUM"
+    category: "DATA_RIGHTS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(retention|ttl|expir|purge|delete.?old|cleanup|data.?retention)\s*[:=]\s*(0|false|none|disabled|never)'
+    recommendations:
+      - "Implement data retention policies with automated cleanup for GDPR right to erasure compliance."
+    clause_reference: "Article 17 Right to Erasure"
+
+  - rule_id: "GDPR-A7-1"
+    title: "Missing consent mechanism"
+    description: "Data collection without consent tracking mechanisms may violate lawful processing requirements."
+    severity: "MEDIUM"
+    category: "CONSENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(collect|gather|track|capture)\s*\(?\s*.*\b(user.?data|personal|email|analytics)\b(?!.*consent)'
+    recommendations:
+      - "Implement consent tracking. Record when and how user consent was obtained for each data processing purpose."
+    clause_reference: "Article 7 Conditions for Consent"
+
+  - rule_id: "GDPR-A33-1"
+    title: "Missing data breach notification mechanism"
+    description: "No evidence of breach notification or incident response mechanisms."
+    severity: "LOW"
+    category: "INCIDENT_RESPONSE"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:SECURITY*"
+    recommendations:
+      - "Add a SECURITY.md file with vulnerability disclosure and incident response procedures."
+    clause_reference: "Article 33 Notification of Personal Data Breach"
+
+  - rule_id: "GDPR-A5-3"
+    title: "Unencrypted data transmission"
+    description: "Transmitting personal data over unencrypted channels violates integrity and confidentiality principles."
+    severity: "HIGH"
+    category: "DATA_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(ftp|telnet|smtp)://(?!.*ssl|.*tls)'
+    recommendations:
+      - "Use encrypted protocols (SFTP, SMTPS, HTTPS) for all personal data transmission."
+    clause_reference: "Article 5(1)(f) Integrity and Confidentiality"
+
+  - rule_id: "GDPR-A35-1"
+    title: "Large-scale data processing without impact assessment"
+    description: "Code patterns suggesting large-scale data processing that may require a DPIA."
+    severity: "LOW"
+    category: "COMPLIANCE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(bulk.?import|mass.?process|batch.?upload|migrate.?all.?users|process.?all.?records)'
+    recommendations:
+      - "Conduct a Data Protection Impact Assessment (DPIA) for large-scale personal data processing."
+    clause_reference: "Article 35 Data Protection Impact Assessment"

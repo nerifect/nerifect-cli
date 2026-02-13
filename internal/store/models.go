@@ -121,3 +121,16 @@ type Fix struct {
 	Status         FixStatus `json:"status"`
 	CreatedAt      time.Time `json:"created_at"`
 }
+
+type AgentSource struct {
+	ID             int64      `json:"id"`
+	URL            string     `json:"url"`
+	Name           string     `json:"name"`
+	Enabled        bool       `json:"enabled"`
+	ContentHash    string     `json:"content_hash"`
+	LastCheckAt    *time.Time `json:"last_check_at"`
+	LastError      string     `json:"last_error"`
+	LinkedPolicyID int64      `json:"linked_policy_id"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+}

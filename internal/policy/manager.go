@@ -92,6 +92,37 @@ func (m *Manager) AddFromFile(ctx context.Context, path string) (*store.Policy, 
 	return policy, nil
 }
 
+// AddFromText parses pre-fetched text with LLM and stores the policy.
+// Used by the agent daemon which has already fetched the content for hashing.
+func (m *Manager) AddFromText(ctx context.Context, text, sourceURL string) (*store.Policy, error) {
+	if strings.TrimSpace(text) == "" {
+		return nil, fmt.Errorf("document text is empty")
+	}
+
+	parsed, err := m.parser.Parse(ctx, text)
+	if err != nil {
+		return nil, fmt.Errorf("parsing document: %w", err)
+	}
+
+	rulesJSON := RulesJSON(parsed.Rules)
+
+	policy, err := store.CreatePolicy(
+		parsed.RegulationName,
+		parsed.Summary,
+		store.PolicyCategoryCompliance,
+		store.SeverityMedium,
+		sourceURL,
+		rulesJSON,
+		parsed.RegulationType,
+		len(parsed.Rules),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("saving policy: %w", err)
+	}
+
+	return policy, nil
+}
+
 // List returns all stored policies.
 func (m *Manager) List() ([]store.Policy, error) {
 	return store.ListPolicies()

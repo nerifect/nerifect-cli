@@ -1,0 +1,138 @@
+name: "PCI-DSS v4.0 Basic"
+slug: "pci-dss"
+description: "PCI-DSS v4.0 - pattern-based checks for payment card data security and cardholder data protection"
+category: "SECURITY"
+severity: "CRITICAL"
+regulation_type: "COMPLIANCE"
+rules:
+  - rule_id: "PCI-3.4-1"
+    title: "Credit card number pattern in source code"
+    description: "Potential primary account number (PAN) found hardcoded in source code. Cardholder data must never be stored in code."
+    severity: "CRITICAL"
+    category: "CARDHOLDER_DATA"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)["'']\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}["'']'
+    recommendations:
+      - "Never store PANs in source code. Use tokenization services from your payment processor."
+    clause_reference: "PCI-DSS Req 3.4 Render PAN Unreadable"
+
+  - rule_id: "PCI-3.2-1"
+    title: "CVV/CVC security code stored"
+    description: "CVV, CVC, or card security code values found in code. Sensitive authentication data must never be stored after authorization."
+    severity: "CRITICAL"
+    category: "CARDHOLDER_DATA"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(cvv|cvc|cvv2|cid|security.?code|card.?verification)\s*[:=]\s*["'']\d{3,4}["'']'
+    recommendations:
+      - "Never store CVV/CVC values. These must only be used during transaction authorization and immediately discarded."
+    clause_reference: "PCI-DSS Req 3.2 Do Not Store Sensitive Authentication Data"
+
+  - rule_id: "PCI-3.4-2"
+    title: "Cardholder data in log output"
+    description: "Logging statements reference cardholder data fields. PANs and authentication data must not appear in logs."
+    severity: "HIGH"
+    category: "CARDHOLDER_DATA"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(log|logger|console|print)\s*[\.(]\s*(info|debug|warn|error|log|print|println)?\s*\(?\s*.*\b(card.?number|pan|credit.?card|cardholder|card.?holder|account.?number|card.?data)\b'
+    recommendations:
+      - "Never log cardholder data. Implement log scrubbing and mask PANs to show only the last four digits."
+    clause_reference: "PCI-DSS Req 3.4 Render PAN Unreadable"
+
+  - rule_id: "PCI-4.1-1"
+    title: "Unencrypted payment endpoint communication"
+    description: "HTTP URL referencing payment, checkout, or billing endpoints. All cardholder data must be encrypted in transit."
+    severity: "CRITICAL"
+    category: "TRANSMISSION_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)http://[^"''\s]*\b(payment|checkout|billing|stripe|paypal|braintree|card|transaction|merchant)\b'
+    recommendations:
+      - "Use HTTPS (TLS 1.2+) for all payment-related endpoints. Never transmit cardholder data over unencrypted channels."
+    clause_reference: "PCI-DSS Req 4.1 Strong Cryptography for Transmission"
+
+  - rule_id: "PCI-2.1-1"
+    title: "Default or vendor-supplied credentials"
+    description: "Default, vendor-supplied, or trivially guessable passwords found in payment-related code."
+    severity: "HIGH"
+    category: "SECURE_CONFIG"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(password|passwd|secret|api.?key)\s*[:=]\s*["''](admin|password|default|test|changeme|1234|guest|root|demo)["'']'
+    recommendations:
+      - "Change all default and vendor-supplied passwords. Use unique, complex credentials managed via a secrets vault."
+    clause_reference: "PCI-DSS Req 2.1 Change Vendor-Supplied Defaults"
+
+  - rule_id: "PCI-3.5-1"
+    title: "Hardcoded encryption key"
+    description: "Cryptographic keys hardcoded in source code. Key management must protect keys from disclosure."
+    severity: "HIGH"
+    category: "KEY_MANAGEMENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(encryption.?key|aes.?key|crypto.?key|secret.?key|private.?key|signing.?key)\s*[:=]\s*["''][A-Za-z0-9+/=\-_]{16,}["'']'
+    recommendations:
+      - "Store encryption keys in a hardware security module (HSM) or key management service, never in source code."
+    clause_reference: "PCI-DSS Req 3.5 Protect Stored Cryptographic Keys"
+
+  - rule_id: "PCI-6.4-1"
+    title: "Test or sandbox payment credentials in code"
+    description: "Test-mode or sandbox payment credentials found in source code that may accidentally reach production."
+    severity: "HIGH"
+    category: "SECURE_DEVELOPMENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(sk_test_|pk_test_|sandbox|PAYPAL_SANDBOX|test_mode\s*[:=]\s*true|stripe.?test|test.?api.?key)'
+    recommendations:
+      - "Remove test/sandbox credentials from production code. Use environment variables and deployment-specific configuration."
+    clause_reference: "PCI-DSS Req 6.4 Protect Against Common Coding Vulnerabilities"
+
+  - rule_id: "PCI-3.6-1"
+    title: "Weak encryption algorithm for cardholder data"
+    description: "Weak or deprecated cryptographic algorithms that do not meet PCI-DSS minimum standards."
+    severity: "HIGH"
+    category: "ENCRYPTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)\b(DES|3DES|RC4|RC2|ECB|Blowfish)\b\s*[\(.]'
+    recommendations:
+      - "Use AES-256 or stronger for encrypting cardholder data. Remove all references to deprecated algorithms."
+    clause_reference: "PCI-DSS Req 3.6 Cryptographic Key Management"
+
+  - rule_id: "PCI-8.2-1"
+    title: "Authentication disabled or bypassed"
+    description: "Authentication mechanism disabled or bypassed in code handling payment data."
+    severity: "MEDIUM"
+    category: "ACCESS_CONTROL"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(auth|authenticate|authorization)\s*[:=]\s*(false|off|disabled|skip|bypass|none)'
+    recommendations:
+      - "Enable authentication for all components in the cardholder data environment. Implement MFA for administrative access."
+    clause_reference: "PCI-DSS Req 8.2 User Identification and Authentication"
+
+  - rule_id: "PCI-10.1-1"
+    title: "Audit logging disabled or suppressed"
+    description: "Audit trail logging is disabled. All access to cardholder data must be logged and monitored."
+    severity: "MEDIUM"
+    category: "LOGGING"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(audit|logging|access.?log|transaction.?log)\s*[:=]\s*(false|off|disabled|none|0|silent)'
+    recommendations:
+      - "Enable audit logging for all access to cardholder data. Retain logs for at least one year with 3 months immediately accessible."
+    clause_reference: "PCI-DSS Req 10.1 Audit Trails"
+
+  - rule_id: "PCI-8.5-1"
+    title: "Shared or group credentials"
+    description: "Code references shared, group, or generic service accounts that prevent individual accountability."
+    severity: "MEDIUM"
+    category: "ACCESS_CONTROL"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(shared.?password|shared.?key|group.?account|generic.?user|service.?account.?password|shared.?credential)\s*[:=]'
+    recommendations:
+      - "Assign unique credentials to each individual. Eliminate shared or group authentication credentials."
+    clause_reference: "PCI-DSS Req 8.5 Do Not Use Shared Credentials"
+
+  - rule_id: "PCI-12.1-1"
+    title: "Missing security policy documentation"
+    description: "No security policy file found in the repository. PCI-DSS requires a documented information security policy."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:SECURITY*"
+    recommendations:
+      - "Add a SECURITY.md or security policy document covering PCI-DSS security management requirements."
+    clause_reference: "PCI-DSS Req 12.1 Information Security Policy"

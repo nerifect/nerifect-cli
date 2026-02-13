@@ -168,6 +168,11 @@ These presets provide pattern-based rules that work without an LLM API key.`,
   nerifect policy add-preset cis-docker
   nerifect policy add-preset soc2-basic
   nerifect policy add-preset gdpr-basic
+  nerifect policy add-preset hipaa-basic
+  nerifect policy add-preset pci-dss
+  nerifect policy add-preset cis-kubernetes
+  nerifect policy add-preset nist-800-53
+  nerifect policy add-preset eu-ai-act
   nerifect policy add-preset --all`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runPolicyAddPreset(cmd, args, all)

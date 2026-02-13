@@ -49,6 +49,8 @@ and generates AI-powered fixes using Google Gemini.`,
 	rootCmd.AddCommand(newReportCmd())
 	rootCmd.AddCommand(newConfigCmd())
 	rootCmd.AddCommand(newRepoCmd())
+	rootCmd.AddCommand(newAgentCmd())
+	rootCmd.AddCommand(newRunDaemonCmd())
 	rootCmd.AddCommand(newVersionCmd())
 
 	return rootCmd

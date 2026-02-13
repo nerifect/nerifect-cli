@@ -1,0 +1,138 @@
+name: "HIPAA Security Rule Basic"
+slug: "hipaa-basic"
+description: "HIPAA Security Rule - pattern-based checks for protected health information (PHI) security and privacy controls"
+category: "COMPLIANCE"
+severity: "HIGH"
+regulation_type: "REGULATION"
+rules:
+  - rule_id: "HIPAA-312A-1"
+    title: "PHI logged in application output"
+    description: "Protected health information terms found in logging statements. Logging PHI violates the minimum necessary standard."
+    severity: "HIGH"
+    category: "PHI_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(log|logger|console|print)\s*[\.(]\s*(info|debug|warn|error|log|print|println)?\s*\(?\s*.*\b(patient|diagnosis|medical.?record|health.?info|dob|date.?of.?birth|ssn|insurance.?id|mrn)\b'
+    recommendations:
+      - "Redact or mask PHI before logging. Implement field-level filtering for health-related data."
+    clause_reference: "45 CFR 164.312(a) Access Control"
+
+  - rule_id: "HIPAA-312A-2"
+    title: "Hardcoded PHI in source code"
+    description: "Patient identifiers or health data hardcoded in source code violate PHI safeguard requirements."
+    severity: "HIGH"
+    category: "PHI_PROTECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(patient.?name|patient.?id|medical.?record|mrn|diagnosis.?code)\s*[:=]\s*["''][A-Za-z0-9\s.]+["'']'
+    recommendations:
+      - "Remove all hardcoded PHI from source code. Use test data generators with synthetic patient data for development."
+    clause_reference: "45 CFR 164.312(a) Access Control"
+
+  - rule_id: "HIPAA-312E-1"
+    title: "Unencrypted PHI transmission"
+    description: "HTTP URLs referencing health or patient endpoints transmit PHI without encryption."
+    severity: "CRITICAL"
+    category: "TRANSMISSION_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)http://[^"''\s]*\b(patient|health|medical|ehr|fhir|hl7|dicom|clinical)\b'
+    recommendations:
+      - "Use HTTPS (TLS 1.2+) for all endpoints handling PHI. Configure HSTS headers."
+    clause_reference: "45 CFR 164.312(e) Transmission Security"
+
+  - rule_id: "HIPAA-312A-3"
+    title: "Encryption disabled for data storage"
+    description: "Encryption explicitly disabled for data that may contain PHI violates encryption requirements."
+    severity: "CRITICAL"
+    category: "ENCRYPTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(encrypt|encryption|encrypted)\s*[:=]\s*(false|no|off|disabled|none|0)'
+    recommendations:
+      - "Enable AES-256 encryption for all data at rest that may contain PHI."
+    clause_reference: "45 CFR 164.312(a)(2)(iv) Encryption and Decryption"
+
+  - rule_id: "HIPAA-312B-1"
+    title: "Audit logging disabled"
+    description: "Audit trail mechanisms disabled or suppressed. HIPAA requires audit controls for PHI access."
+    severity: "HIGH"
+    category: "AUDIT_CONTROLS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(audit|audit.?log|audit.?trail|access.?log)\s*[:=]\s*(false|no|off|disabled|none|0)'
+    recommendations:
+      - "Enable audit logging for all systems handling PHI. Record access events with timestamps and user identity."
+    clause_reference: "45 CFR 164.312(b) Audit Controls"
+
+  - rule_id: "HIPAA-312D-1"
+    title: "Authentication bypass or disabled"
+    description: "Authentication mechanisms disabled or bypassed for endpoints that may involve PHI access."
+    severity: "CRITICAL"
+    category: "AUTHENTICATION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(auth|authenticate|login|verify.?identity)\s*[:=]\s*(false|no|off|disabled|skip|bypass)'
+    recommendations:
+      - "Enable multi-factor authentication for all PHI access points per HIPAA requirements."
+    clause_reference: "45 CFR 164.312(d) Person or Entity Authentication"
+
+  - rule_id: "HIPAA-312C-1"
+    title: "Data integrity checks disabled"
+    description: "Integrity validation mechanisms disabled. HIPAA requires controls to protect PHI from improper alteration."
+    severity: "MEDIUM"
+    category: "DATA_INTEGRITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(integrity.?check|checksum|hash.?verify|validate.?integrity|data.?integrity)\s*[:=]\s*(false|no|off|disabled|skip)'
+    recommendations:
+      - "Enable integrity checks (checksums, HMAC) for PHI data to detect unauthorized modification."
+    clause_reference: "45 CFR 164.312(c) Integrity Controls"
+
+  - rule_id: "HIPAA-308A-1"
+    title: "Weak or default passwords"
+    description: "Default or trivially guessable passwords found in code used by health information systems."
+    severity: "HIGH"
+    category: "SECURITY_AWARENESS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(password|passwd)\s*[:=]\s*["''](password|123456|admin|default|changeme|test|welcome|guest)["'']'
+    recommendations:
+      - "Enforce strong password policies: minimum 12 characters, complexity requirements, no dictionary words."
+    clause_reference: "45 CFR 164.308(a)(5) Security Awareness and Training"
+
+  - rule_id: "HIPAA-312E-2"
+    title: "Disabled TLS/SSL certificate verification"
+    description: "TLS certificate verification disabled, allowing man-in-the-middle attacks on PHI transmissions."
+    severity: "HIGH"
+    category: "TRANSMISSION_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(verify\s*[:=]\s*false|InsecureSkipVerify\s*[:=]\s*true|VERIFY_NONE|verify_ssl\s*[:=]\s*false|rejectUnauthorized\s*[:=]\s*false)'
+    recommendations:
+      - "Always verify TLS certificates for connections carrying PHI. Use valid CA-signed certificates."
+    clause_reference: "45 CFR 164.312(e) Transmission Security"
+
+  - rule_id: "HIPAA-308A-2"
+    title: "PHI in error messages or stack traces"
+    description: "Error handling code references health data fields, risking PHI leakage in error output."
+    severity: "MEDIUM"
+    category: "INCIDENT_PROCEDURES"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(error|exception|throw|raise|panic|stderr)\s*[\.(].*\b(patient|diagnosis|health.?record|medical|ssn|insurance|mrn|clinical)\b'
+    recommendations:
+      - "Sanitize error messages to exclude PHI. Use error codes instead of descriptive PHI-containing messages."
+    clause_reference: "45 CFR 164.308(a)(6) Security Incident Procedures"
+
+  - rule_id: "HIPAA-316-1"
+    title: "Missing HIPAA compliance documentation"
+    description: "No HIPAA policy documentation found in the repository."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:HIPAA*"
+    recommendations:
+      - "Add HIPAA compliance documentation covering security policies, procedures, and workforce training records."
+    clause_reference: "45 CFR 164.316 Policies and Procedures"
+
+  - rule_id: "HIPAA-530-1"
+    title: "Missing privacy notice documentation"
+    description: "No privacy policy or notice of privacy practices found in the repository."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:PRIVACY*"
+    recommendations:
+      - "Add a privacy notice documenting how PHI is collected, used, disclosed, and protected per HIPAA requirements."
+    clause_reference: "45 CFR 164.530(c) Notice of Privacy Practices"

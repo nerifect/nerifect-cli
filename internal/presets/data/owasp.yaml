@@ -1,0 +1,160 @@
+name: "OWASP Top 10"
+slug: "owasp-top-10"
+description: "OWASP Top 10 Web Application Security Risks - pattern-based detection for common vulnerabilities"
+category: "SECURITY"
+severity: "HIGH"
+regulation_type: "SECURITY"
+rules:
+  - rule_id: "OWASP-A03-1"
+    title: "Potential SQL injection"
+    description: "String concatenation or formatting in SQL query functions may allow SQL injection attacks."
+    severity: "CRITICAL"
+    category: "INJECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(execute|query|raw|rawQuery)\s*\(.*(\+\s*["'']|%s|\$\{|\bformat\b)'
+    recommendations:
+      - "Use parameterized queries or prepared statements instead of string concatenation."
+    clause_reference: "A03:2021 Injection"
+
+  - rule_id: "OWASP-A03-2"
+    title: "Potential XSS via innerHTML"
+    description: "Direct HTML injection through innerHTML, document.write, or jQuery .html() may allow cross-site scripting."
+    severity: "HIGH"
+    category: "INJECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(innerHTML\s*=|document\.write\s*\(|\.html\s*\()'
+    recommendations:
+      - "Use textContent, createTextNode, or framework-safe rendering instead of innerHTML."
+    clause_reference: "A03:2021 Injection"
+
+  - rule_id: "OWASP-A03-3"
+    title: "Potential command injection"
+    description: "Executing shell commands with string interpolation can lead to command injection."
+    severity: "CRITICAL"
+    category: "INJECTION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(exec|system|popen|subprocess\.call|child_process\.exec)\s*\(.*(\+\s*["'']|\$\{|%s|\bformat\b)'
+    recommendations:
+      - "Use parameterized command execution or allowlists instead of shell interpolation."
+    clause_reference: "A03:2021 Injection"
+
+  - rule_id: "OWASP-A02-1"
+    title: "Hardcoded secret or credential"
+    description: "Passwords, API keys, or tokens hardcoded in source code may be exposed."
+    severity: "CRITICAL"
+    category: "CRYPTO_FAILURE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(password|passwd|secret|api_key|apikey|api_secret|token|auth_token|access_key)\s*[:=]\s*["''][A-Za-z0-9+/=_\-]{8,}'
+    recommendations:
+      - "Store secrets in environment variables or a secrets manager, never in source code."
+    clause_reference: "A02:2021 Cryptographic Failures"
+
+  - rule_id: "OWASP-A02-2"
+    title: "Weak hashing algorithm"
+    description: "MD5 or SHA1 are cryptographically weak and should not be used for security-sensitive operations."
+    severity: "HIGH"
+    category: "CRYPTO_FAILURE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(md5|sha1)\s*[\(.]'
+    recommendations:
+      - "Use SHA-256, bcrypt, scrypt, or Argon2 for cryptographic hashing."
+    clause_reference: "A02:2021 Cryptographic Failures"
+
+  - rule_id: "OWASP-A02-3"
+    title: "HTTP URL in configuration"
+    description: "Unencrypted HTTP URLs in configuration may expose data in transit."
+    severity: "MEDIUM"
+    category: "CRYPTO_FAILURE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)["'']http://[^"'']*\.(com|org|net|io|dev|app|api)'
+    recommendations:
+      - "Use HTTPS for all external communication to protect data in transit."
+    clause_reference: "A02:2021 Cryptographic Failures"
+
+  - rule_id: "OWASP-A08-1"
+    title: "Insecure deserialization"
+    description: "Unsafe deserialization functions can lead to remote code execution."
+    severity: "HIGH"
+    category: "SOFTWARE_INTEGRITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(pickle\.loads?\s*\(|yaml\.load\s*\(|unserialize\s*\(|Marshal\.load\s*\(|readObject\s*\()'
+    recommendations:
+      - "Use safe deserialization methods (e.g., yaml.safe_load, JSON) and validate input."
+    clause_reference: "A08:2021 Software and Data Integrity Failures"
+
+  - rule_id: "OWASP-A05-1"
+    title: "Overly permissive CORS configuration"
+    description: "Allowing all origins in CORS configuration can expose APIs to cross-origin attacks."
+    severity: "MEDIUM"
+    category: "SECURITY_MISCONFIG"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(Access-Control-Allow-Origin|cors).*[''"\*"'']'
+    recommendations:
+      - "Restrict CORS to specific trusted origins rather than using wildcard '*'."
+    clause_reference: "A05:2021 Security Misconfiguration"
+
+  - rule_id: "OWASP-A05-2"
+    title: "Debug mode enabled"
+    description: "Debug mode left enabled in production can expose sensitive information."
+    severity: "MEDIUM"
+    category: "SECURITY_MISCONFIG"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(DEBUG\s*[:=]\s*True|debug\s*[:=]\s*true|EnableDebug|SetDebug\(true\))'
+    recommendations:
+      - "Ensure debug mode is disabled in production deployments."
+    clause_reference: "A05:2021 Security Misconfiguration"
+
+  - rule_id: "OWASP-A07-1"
+    title: "Missing authentication check"
+    description: "Presence of TODO or FIXME comments related to authentication may indicate incomplete security controls."
+    severity: "MEDIUM"
+    category: "AUTH_FAILURE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(TODO|FIXME|HACK).*\b(auth|login|permission|credential|verify)\b'
+    recommendations:
+      - "Resolve all TODO/FIXME items related to authentication before deployment."
+    clause_reference: "A07:2021 Identification and Authentication Failures"
+
+  - rule_id: "OWASP-A09-1"
+    title: "Sensitive data in log output"
+    description: "Logging sensitive fields like passwords or tokens can lead to data exposure."
+    severity: "HIGH"
+    category: "LOGGING_FAILURE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(log|logger|console)\s*\.\s*(info|debug|warn|error|print|log)\s*\(.*\b(password|token|secret|ssn|credit.?card)\b'
+    recommendations:
+      - "Redact sensitive fields before logging. Use structured logging with field-level filtering."
+    clause_reference: "A09:2021 Security Logging and Monitoring Failures"
+
+  - rule_id: "OWASP-A06-1"
+    title: "Pinned or outdated dependency version"
+    description: "Very old pinned dependency versions may contain known vulnerabilities."
+    severity: "LOW"
+    category: "VULNERABLE_COMPONENTS"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(==\s*[01]\.\d+\.\d+|"version":\s*"[01]\.\d+)'
+    recommendations:
+      - "Regularly update dependencies and use tools like Dependabot or Renovate."
+    clause_reference: "A06:2021 Vulnerable and Outdated Components"
+
+  - rule_id: "OWASP-A04-1"
+    title: "Path traversal risk"
+    description: "Joining user input with file paths without sanitization can lead to path traversal."
+    severity: "HIGH"
+    category: "INSECURE_DESIGN"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(open|readFile|read_file|send_file)\s*\(.*(\+|join|format|concat).*\b(req|request|params|query|input)\b'
+    recommendations:
+      - "Validate and sanitize file paths. Use allowlists and resolve paths canonically."
+    clause_reference: "A04:2021 Insecure Design"
+
+  - rule_id: "OWASP-A01-1"
+    title: "Missing access control file"
+    description: "No security.txt file found. This file helps security researchers report vulnerabilities."
+    severity: "INFO"
+    category: "ACCESS_CONTROL"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:security.txt"
+    recommendations:
+      - "Add a security.txt file (RFC 9116) to document your vulnerability disclosure process."
+    clause_reference: "A01:2021 Broken Access Control"

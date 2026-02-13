@@ -114,6 +114,21 @@ func migrate(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_ai_detections_scan_id ON ai_detections(scan_id);
 	CREATE INDEX IF NOT EXISTS idx_fixes_violation_id ON fixes(violation_id);
 	CREATE INDEX IF NOT EXISTS idx_fixes_scan_id ON fixes(scan_id);
+
+	CREATE TABLE IF NOT EXISTS agent_sources (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		url TEXT NOT NULL UNIQUE,
+		name TEXT NOT NULL DEFAULT '',
+		enabled INTEGER NOT NULL DEFAULT 1,
+		content_hash TEXT DEFAULT '',
+		last_check_at DATETIME,
+		last_error TEXT DEFAULT '',
+		linked_policy_id INTEGER DEFAULT 0,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_agent_sources_url ON agent_sources(url);
 	`
 
 	_, err := db.Exec(schema)

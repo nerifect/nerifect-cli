@@ -1,0 +1,138 @@
+name: "CIS Kubernetes Benchmark"
+slug: "cis-kubernetes"
+description: "CIS Kubernetes Benchmark - pattern-based checks for Kubernetes cluster and workload security best practices"
+category: "SECURITY"
+severity: "HIGH"
+regulation_type: "SECURITY"
+rules:
+  - rule_id: "CIS-K8S-1"
+    title: "Privileged container"
+    description: "Container SecurityContext sets privileged to true giving full host access."
+    severity: "CRITICAL"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)privileged\s*:\s*true'
+    recommendations:
+      - "Remove privileged: true from pod specifications. Use specific Linux capabilities instead of full privileged access."
+    clause_reference: "CIS 5.2.1"
+
+  - rule_id: "CIS-K8S-2"
+    title: "Container running as root"
+    description: "Pod configured to run as root user (UID 0) or explicitly allows root."
+    severity: "HIGH"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(runAsNonRoot\s*:\s*false|runAsUser\s*:\s*0\b)'
+    recommendations:
+      - "Set runAsNonRoot: true and specify a non-zero runAsUser in the pod's securityContext."
+    clause_reference: "CIS 5.2.6"
+
+  - rule_id: "CIS-K8S-3"
+    title: "Host namespace sharing enabled"
+    description: "Pod uses host network, PID, or IPC namespace, breaking container isolation."
+    severity: "HIGH"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(hostNetwork|hostPID|hostIPC)\s*:\s*true'
+    recommendations:
+      - "Disable host namespace sharing. Remove hostNetwork, hostPID, and hostIPC settings from pod specifications."
+    clause_reference: "CIS 5.2.2 / 5.2.3 / 5.2.4"
+
+  - rule_id: "CIS-K8S-4"
+    title: "Privilege escalation allowed"
+    description: "Container allows privilege escalation which may enable a process to gain more privileges than its parent."
+    severity: "HIGH"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)allowPrivilegeEscalation\s*:\s*true'
+    recommendations:
+      - "Set allowPrivilegeEscalation: false in the container securityContext."
+    clause_reference: "CIS 5.2.5"
+
+  - rule_id: "CIS-K8S-5"
+    title: "Writable root filesystem"
+    description: "Container root filesystem is writable, increasing the attack surface for exploitation."
+    severity: "MEDIUM"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)readOnlyRootFilesystem\s*:\s*false'
+    recommendations:
+      - "Set readOnlyRootFilesystem: true and use emptyDir or PVC volumes for writable paths."
+    clause_reference: "CIS 5.2.5"
+
+  - rule_id: "CIS-K8S-6"
+    title: "Dangerous Linux capabilities added"
+    description: "Container adds dangerous Linux capabilities (SYS_ADMIN, NET_RAW, or ALL) expanding the attack surface."
+    severity: "HIGH"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(SYS_ADMIN|NET_RAW|\bALL\b)\s*\]?'
+    recommendations:
+      - "Remove dangerous capabilities. Use drop: ['ALL'] and add only the minimal specific capabilities required."
+    clause_reference: "CIS 5.2.7 / 5.2.8 / 5.2.9"
+
+  - rule_id: "CIS-K8S-7"
+    title: "Workload deployed to default namespace"
+    description: "Resources deployed to the default namespace bypassing namespace-based access controls and isolation."
+    severity: "MEDIUM"
+    category: "NAMESPACE_ISOLATION"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)namespace\s*:\s*["'']?default["'']?\s*$'
+    recommendations:
+      - "Deploy workloads to dedicated namespaces with appropriate RBAC policies, not the default namespace."
+    clause_reference: "CIS 5.7.1"
+
+  - rule_id: "CIS-K8S-8"
+    title: "Wildcard RBAC permissions"
+    description: "ClusterRole or Role grants wildcard (*) access to resources, verbs, or API groups creating excessive privileges."
+    severity: "CRITICAL"
+    category: "RBAC"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(resources|verbs|apiGroups)\s*:\s*\[?\s*["'']\*["'']'
+    recommendations:
+      - "Replace wildcard RBAC permissions with explicit, least-privilege resource and verb lists."
+    clause_reference: "CIS 5.1.3"
+
+  - rule_id: "CIS-K8S-9"
+    title: "HostPath volume mount"
+    description: "Pod mounts a host filesystem path, potentially exposing sensitive host data to the container."
+    severity: "HIGH"
+    category: "WORKLOAD_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)\bhostPath\s*:'
+    recommendations:
+      - "Avoid hostPath mounts. Use PersistentVolumeClaims, ConfigMaps, or Secrets for data access instead."
+    clause_reference: "CIS 5.2.9"
+
+  - rule_id: "CIS-K8S-10"
+    title: "Container image using latest tag"
+    description: "Container image uses the mutable 'latest' tag which can introduce unexpected version changes."
+    severity: "MEDIUM"
+    category: "IMAGE_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)image\s*:\s*\S+:latest\b'
+    recommendations:
+      - "Pin container images to specific versions or SHA256 digests for reproducible and auditable deployments."
+    clause_reference: "CIS 5.4.2"
+
+  - rule_id: "CIS-K8S-11"
+    title: "Default service account used"
+    description: "Pod uses the default service account which may have unintended RBAC permissions."
+    severity: "MEDIUM"
+    category: "RBAC"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)serviceAccountName\s*:\s*["'']?default["'']?\s*$'
+    recommendations:
+      - "Create dedicated service accounts for each workload with minimal required RBAC permissions."
+    clause_reference: "CIS 5.1.5"
+
+  - rule_id: "CIS-K8S-12"
+    title: "Secrets in plaintext Kubernetes manifests"
+    description: "Kubernetes Secret manifest uses stringData storing secrets in plaintext YAML that may be committed to version control."
+    severity: "HIGH"
+    category: "SECRET_MANAGEMENT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)\bstringData\s*:'
+    recommendations:
+      - "Use sealed-secrets, external-secrets-operator, or a vault integration instead of plaintext stringData in committed manifests."
+    clause_reference: "CIS 5.4.1"

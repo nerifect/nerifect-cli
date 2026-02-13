@@ -31,8 +31,9 @@ type Config struct {
 	DataDir         string       `yaml:"data_dir" json:"data_dir"`
 	DatabasePath    string       `yaml:"database_path" json:"database_path"`
 	MaxFilesPerScan int          `yaml:"max_files_per_scan" json:"max_files_per_scan"`
-	MaxFileSizeKB   int          `yaml:"max_file_size_kb" json:"max_file_size_kb"`
-	Repos           []RepoConfig `yaml:"repos,omitempty" json:"repos,omitempty"`
+	MaxFileSizeKB      int          `yaml:"max_file_size_kb" json:"max_file_size_kb"`
+	AgentCheckInterval int          `yaml:"agent_check_interval" json:"agent_check_interval"`
+	Repos              []RepoConfig `yaml:"repos,omitempty" json:"repos,omitempty"`
 }
 
 func DefaultConfig() *Config {
@@ -44,8 +45,9 @@ func DefaultConfig() *Config {
 		OutputFormat:    "table",
 		DataDir:         dataDir,
 		DatabasePath:    filepath.Join(dataDir, "nerifect.db"),
-		MaxFilesPerScan: 800,
-		MaxFileSizeKB:   80,
+		MaxFilesPerScan:    800,
+		MaxFileSizeKB:      80,
+		AgentCheckInterval: 24,
 	}
 }
 
@@ -89,6 +91,13 @@ func Load() (*Config, error) {
 	if v := os.Getenv("NERIFECT_DATA_DIR"); v != "" {
 		cfg.DataDir = v
 		cfg.DatabasePath = filepath.Join(v, "nerifect.db")
+	}
+	if v := os.Getenv("NERIFECT_AGENT_INTERVAL"); v != "" {
+		var n int
+		fmt.Sscanf(v, "%d", &n)
+		if n > 0 {
+			cfg.AgentCheckInterval = n
+		}
 	}
 
 	// Ensure data directory

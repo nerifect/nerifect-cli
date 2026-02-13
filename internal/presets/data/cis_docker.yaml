@@ -1,0 +1,116 @@
+name: "CIS Docker Benchmark"
+slug: "cis-docker"
+description: "CIS Docker Benchmark - pattern-based checks for Dockerfile and container security best practices"
+category: "SECURITY"
+severity: "HIGH"
+regulation_type: "SECURITY"
+rules:
+  - rule_id: "CIS-DOCKER-1"
+    title: "Container running as root"
+    description: "Dockerfile explicitly sets USER to root. Containers should run as non-root for least privilege."
+    severity: "HIGH"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^USER\s+root\s*$'
+    recommendations:
+      - "Create a non-root user and set USER to that user in the Dockerfile."
+    clause_reference: "CIS 4.1"
+
+  - rule_id: "CIS-DOCKER-2"
+    title: "Using latest tag in base image"
+    description: "FROM directive uses the 'latest' tag which is mutable and may introduce unexpected changes."
+    severity: "MEDIUM"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^FROM\s+\S+:latest'
+    recommendations:
+      - "Pin base images to a specific version or digest for reproducible builds."
+    clause_reference: "CIS 4.2"
+
+  - rule_id: "CIS-DOCKER-3"
+    title: "Secrets exposed in ENV directive"
+    description: "ENV directives containing password, secret, or key values embed secrets in the image layer."
+    severity: "CRITICAL"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^ENV\s+\S*(PASSWORD|SECRET|KEY|TOKEN|CREDENTIAL)\S*\s*=\s*\S+'
+    recommendations:
+      - "Use Docker secrets, build args with --secret, or runtime environment variables instead of ENV for secrets."
+    clause_reference: "CIS 4.3"
+
+  - rule_id: "CIS-DOCKER-4"
+    title: "Using ADD instead of COPY"
+    description: "ADD has extra functionality (URL fetch, tar extraction) that can introduce unexpected behavior. COPY is more explicit."
+    severity: "LOW"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^ADD\s+'
+    recommendations:
+      - "Use COPY instead of ADD unless you specifically need URL fetching or tar extraction."
+    clause_reference: "CIS 4.9"
+
+  - rule_id: "CIS-DOCKER-5"
+    title: "Missing HEALTHCHECK directive"
+    description: "No HEALTHCHECK instruction in Dockerfile. Health checks enable container orchestrators to detect unhealthy containers."
+    severity: "LOW"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^HEALTHCHECK\s+NONE'
+    recommendations:
+      - "Add a HEALTHCHECK instruction to enable container health monitoring."
+    clause_reference: "CIS 4.6"
+
+  - rule_id: "CIS-DOCKER-6"
+    title: "Privileged port exposure"
+    description: "Exposing ports below 1024 requires elevated privileges."
+    severity: "MEDIUM"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^EXPOSE\s+([1-9]|[1-9]\d|[1-9]\d{2}|10[0-1]\d|102[0-3])\b'
+    recommendations:
+      - "Use ports above 1024 and map them in your orchestrator if needed."
+    clause_reference: "CIS 4.5"
+
+  - rule_id: "CIS-DOCKER-7"
+    title: "Using sudo in Dockerfile"
+    description: "Using sudo in RUN commands is error-prone and often unnecessary in container builds."
+    severity: "MEDIUM"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^RUN\s+.*\bsudo\b'
+    recommendations:
+      - "Run commands as root during build (before USER) and switch to non-root user after."
+    clause_reference: "CIS 4.1"
+
+  - rule_id: "CIS-DOCKER-8"
+    title: "apt-get without --no-install-recommends"
+    description: "Installing packages without --no-install-recommends pulls unnecessary dependencies increasing attack surface."
+    severity: "LOW"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)^RUN\s+.*apt-get\s+install(?!.*--no-install-recommends)'
+    recommendations:
+      - "Use 'apt-get install --no-install-recommends' to minimize installed packages."
+    clause_reference: "CIS 4.9"
+
+  - rule_id: "CIS-DOCKER-9"
+    title: "curl or wget piped to shell"
+    description: "Piping downloaded scripts directly to a shell is risky as content may be tampered with."
+    severity: "HIGH"
+    category: "CONTAINER_SECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?im)(curl|wget)\s+.*\|\s*(sh|bash|zsh)'
+    recommendations:
+      - "Download scripts to a file, verify their checksum, then execute them."
+    clause_reference: "CIS 4.9"
+
+  - rule_id: "CIS-DOCKER-10"
+    title: "Missing Dockerfile"
+    description: "No Dockerfile found. If this is a containerized application, a Dockerfile should be present."
+    severity: "INFO"
+    category: "CONTAINER_SECURITY"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:Dockerfile"
+    recommendations:
+      - "Add a Dockerfile if this application is intended to be containerized."
+    clause_reference: "CIS 4.0"

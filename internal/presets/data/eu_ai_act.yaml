@@ -1,0 +1,138 @@
+name: "EU AI Act Compliance"
+slug: "eu-ai-act"
+description: "EU AI Act (Regulation 2024/1689) - pattern-based checks for AI system transparency, risk management, and governance"
+category: "COMPLIANCE"
+severity: "HIGH"
+regulation_type: "REGULATION"
+rules:
+  - rule_id: "EUAI-ART5-1"
+    title: "Biometric identification or facial recognition"
+    description: "Code references facial recognition, biometric identification, or face detection which may constitute a prohibited or high-risk AI practice under the EU AI Act."
+    severity: "CRITICAL"
+    category: "PROHIBITED_PRACTICES"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(face.?detect|face.?recogni|facial.?recogni|biometric.?identif|face.?match|face.?embed|deepface|face.?encoding)'
+    recommendations:
+      - "Biometric identification is subject to strict EU AI Act restrictions. Conduct a conformity assessment and ensure explicit legal basis under Article 5."
+    clause_reference: "Article 5(1)(d) Prohibited AI Practices"
+
+  - rule_id: "EUAI-ART5-2"
+    title: "Social scoring or behavior scoring pattern"
+    description: "Code implements social scoring, citizen scoring, or behavioral trustworthiness scoring which is prohibited under the EU AI Act."
+    severity: "CRITICAL"
+    category: "PROHIBITED_PRACTICES"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(social.?scor|citizen.?scor|trustworthiness.?scor|behavior.?scor|loyalty.?scor|social.?rating|reputation.?scor|credit.?scor.?social)'
+    recommendations:
+      - "Social scoring systems are prohibited under Article 5. Remove social scoring functionality or consult legal counsel for compliance."
+    clause_reference: "Article 5(1)(c) Prohibited AI Practices"
+
+  - rule_id: "EUAI-ART13-1"
+    title: "AI transparency disclosure disabled"
+    description: "AI-generated content disclosure or transparency flags are explicitly disabled, violating transparency obligations."
+    severity: "HIGH"
+    category: "TRANSPARENCY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(ai.?disclosure|ai.?transparency|ai.?label|is.?ai.?generated|ai.?generated.?flag|is.?automated|bot.?disclosure)\s*[:=]\s*(false|no|off|disabled|0|none)'
+    recommendations:
+      - "Enable AI transparency disclosures. Users must be informed when interacting with or receiving output from an AI system."
+    clause_reference: "Article 13 Transparency Obligations"
+
+  - rule_id: "EUAI-ART14-1"
+    title: "Human oversight mechanism disabled"
+    description: "Human review, approval, or oversight mechanisms for AI decisions are explicitly disabled or bypassed."
+    severity: "HIGH"
+    category: "HUMAN_OVERSIGHT"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(human.?review|human.?oversight|manual.?review|human.?in.?loop|human.?approval|require.?approval|human.?check)\s*[:=]\s*(false|no|off|disabled|0|none|skip|bypass)'
+    recommendations:
+      - "Enable human oversight for AI-driven decisions. High-risk AI systems must allow effective human intervention per Article 14."
+    clause_reference: "Article 14 Human Oversight"
+
+  - rule_id: "EUAI-ART12-1"
+    title: "AI system logging and monitoring disabled"
+    description: "Logging or monitoring of AI model predictions and decisions is disabled, preventing traceability."
+    severity: "HIGH"
+    category: "RECORD_KEEPING"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(model.?log|prediction.?log|inference.?log|ai.?audit|ml.?log|model.?monitor|decision.?log)\s*[:=]\s*(false|no|off|disabled|0|none)'
+    recommendations:
+      - "Enable automatic logging of AI system operations including inputs, outputs, and decision rationale for traceability."
+    clause_reference: "Article 12 Record-Keeping"
+
+  - rule_id: "EUAI-ART10-1"
+    title: "Data validation skipped in ML pipeline"
+    description: "Data quality validation or data checking mechanisms are disabled in ML training or inference pipelines."
+    severity: "HIGH"
+    category: "DATA_GOVERNANCE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(data.?valid|data.?quality|data.?check|schema.?valid|input.?valid|feature.?valid)\s*[:=]\s*(false|no|off|disabled|skip|0|none)'
+    recommendations:
+      - "Enable data quality validation in all ML pipelines. Training and inference data must meet documented quality criteria per Article 10."
+    clause_reference: "Article 10 Data and Data Governance"
+
+  - rule_id: "EUAI-ART10-2"
+    title: "Bias or fairness evaluation disabled"
+    description: "Bias detection, fairness metrics, or equity checks are explicitly disabled in AI model evaluation."
+    severity: "HIGH"
+    category: "DATA_GOVERNANCE"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(bias|fairness|equity|disparate.?impact|demographic.?parity|equal.?opportunity|bias.?check)\s*[:=]\s*(false|off|disabled|skip|0|none|ignore)'
+    recommendations:
+      - "Enable bias and fairness evaluation for all AI models. Document bias testing methodology and results per Article 10(2)(f)."
+    clause_reference: "Article 10(2)(f) Examination for Biases"
+
+  - rule_id: "EUAI-ART50-1"
+    title: "AI-generated content watermarking disabled"
+    description: "Watermarking, provenance tracking, or content authenticity mechanisms for AI-generated content are disabled."
+    severity: "MEDIUM"
+    category: "TRANSPARENCY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(watermark|provenance|content.?auth|c2pa|content.?credential|ai.?watermark)\s*[:=]\s*(false|off|disabled|skip|0|none)'
+    recommendations:
+      - "Enable watermarking or provenance marking for AI-generated content per Article 50 transparency requirements."
+    clause_reference: "Article 50 Transparency for AI-Generated Content"
+
+  - rule_id: "EUAI-ART15-1"
+    title: "Unsafe model deserialization"
+    description: "AI model loaded via unsafe deserialization (pickle, torch.load without safety) creating cybersecurity risks for the AI system."
+    severity: "MEDIUM"
+    category: "CYBERSECURITY"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(pickle\.loads?\s*\(|torch\.load\s*\(|joblib\.load\s*\(|marshal\.loads?\s*\()'
+    recommendations:
+      - "Use safe model serialization formats (SafeTensors, ONNX) or enable safety flags (torch.load with weights_only=True). Verify model file integrity with checksums."
+    clause_reference: "Article 15 Accuracy, Robustness and Cybersecurity"
+
+  - rule_id: "EUAI-ART5-3"
+    title: "Subliminal or manipulative AI technique"
+    description: "Code patterns suggesting emotional manipulation, subliminal influence, or deceptive AI behavior, which are prohibited practices."
+    severity: "CRITICAL"
+    category: "PROHIBITED_PRACTICES"
+    check_type: "CODE_PATTERN"
+    pattern: '(?i)(subliminal|dark.?pattern|manipulat.?emotion|emotion.?exploit|psychological.?manipulat|addictive.?design|exploit.?vulnerab)'
+    recommendations:
+      - "Remove manipulative or subliminal AI techniques. These are explicitly prohibited under Article 5(1)(a) of the EU AI Act."
+    clause_reference: "Article 5(1)(a) Prohibited AI Practices"
+
+  - rule_id: "EUAI-ART10-3"
+    title: "Missing model card documentation"
+    description: "No MODEL_CARD documentation found. High-risk AI systems require comprehensive technical documentation of model behavior, training data, and performance metrics."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:MODEL_CARD*"
+    recommendations:
+      - "Add a MODEL_CARD.md documenting the AI model's intended use, training data, performance metrics, limitations, and bias evaluation results."
+    clause_reference: "Article 11 Technical Documentation"
+
+  - rule_id: "EUAI-ART9-1"
+    title: "Missing AI risk assessment documentation"
+    description: "No AI risk management or governance documentation found in the repository."
+    severity: "LOW"
+    category: "DOCUMENTATION"
+    check_type: "FILE_PATTERN"
+    pattern: "missing:AI_RISK*"
+    recommendations:
+      - "Add an AI_RISK_ASSESSMENT.md documenting the AI system's risk classification, mitigation measures, and ongoing monitoring procedures per Article 9."
+    clause_reference: "Article 9 Risk Management System"
